@@ -9,33 +9,482 @@ const materials_data = [
 
 const recipes_data = [
   // CARDBOARD
-  { id: 1, recipe_name: "Corn on the Cob Pencil Holder", end_product: "A cardboard tube decorated to look like corn on the cob, used to hold pens and pencils on your desk.", material_id: 1, requires_glue: false, requires_scissors: false, requires_tape: false, requires_string: false, requires_paint: true, difficulty: 1, supervision_required: false },
-  { id: 2, recipe_name: "Vase", end_product: "A cardboard tube transformed into a decorative vase for holding flowers or art supplies.", material_id: 1, requires_glue: false, requires_scissors: false, requires_tape: false, requires_string: false, requires_paint: true, difficulty: 1, supervision_required: false },
-  { id: 3, recipe_name: "Parking Garage", end_product: "A cardboard box converted into a multi-storey garage for storing and displaying toy cars.", material_id: 1, requires_glue: false, requires_scissors: true, requires_tape: true, requires_string: false, requires_paint: false, difficulty: 2, supervision_required: false },
-  { id: 4, recipe_name: "Geometric Wall Organizers", end_product: "Triangular cardboard baskets mounted on the wall for storing craft supplies and stationery.", material_id: 1, requires_glue: false, requires_scissors: true, requires_tape: false, requires_string: false, requires_paint: true, difficulty: 3, supervision_required: true },
-  { id: 5, recipe_name: "Nok Hockey Game", end_product: "A handmade tabletop hockey game built from cardboard boxes that two players can compete against each other.", material_id: 1, requires_glue: true, requires_scissors: true, requires_tape: true, requires_string: false, requires_paint: false, difficulty: 4, supervision_required: true },
-  { id: 6, recipe_name: "Storage Shelf", end_product: "A sturdy cardboard shelf built from a single box capable of holding books and small household items.", material_id: 1, requires_glue: true, requires_scissors: true, requires_tape: true, requires_string: false, requires_paint: false, difficulty: 4, supervision_required: true },
-  { id: 7, recipe_name: "Tensegrity Pen Holder", end_product: "A floating desk accessory that uses string tension to suspend a platform for holding pens and small items.", material_id: 1, requires_glue: true, requires_scissors: true, requires_tape: false, requires_string: true, requires_paint: false, difficulty: 5, supervision_required: true },
+  {
+    id: 1,
+    recipe_name: "Corn on the Cob Pencil Holder",
+    end_product: "A cardboard tube decorated to look like corn on the cob, used to hold pens and pencils on your desk.",
+    material_id: 1,
+    requires_glue: true,
+    requires_scissors: false,
+    requires_tape: false,
+    requires_string: false,
+    requires_paint: true,
+    difficulty: 1,
+    supervision_required: false,
+    steps: [
+      "Use the cardboard tube as the base structure.",
+      "Apply glue to the surface of the tube and roll it over beans or small rolled paper balls to stick them to the surface and mimic corn kernels.",
+      "Paint the tube and beans bright yellow to resemble corn.",
+      "Cut felt or paper into triangle shapes and glue them to the base to serve as the corn husks."
+    ]
+  },
+  {
+    id: 2,
+    recipe_name: "Vase",
+    end_product: "A cardboard tube transformed into a decorative vase for holding flowers or art supplies.",
+    material_id: 1,
+    requires_glue: false,
+    requires_scissors: false,
+    requires_tape: false,
+    requires_string: false,
+    requires_paint: true,
+    difficulty: 1,
+    supervision_required: false,
+    steps: [
+      "Clean and prepare your cardboard tube.",
+      "Apply paint to the exterior in any colour or pattern you like.",
+      "Leave to dry fully before using as a vase or desk organiser."
+    ]
+  },
+  {
+    id: 3,
+    recipe_name: "Parking Garage",
+    end_product: "A cardboard box converted into a multi-storey garage for storing and displaying toy cars.",
+    material_id: 1,
+    requires_glue: false,
+    requires_scissors: true,
+    requires_tape: true,
+    requires_string: false,
+    requires_paint: false,
+    difficulty: 2,
+    supervision_required: false,
+    steps: [
+      "Use a large cardboard box as the outer frame for the garage.",
+      "Place cardboard tubes in a row fitting the width of the garage.",
+      "Tape the row of tubes together.",
+      "Place the row into the garage and stack more rows of tubes until you reach the top.",
+      "Your garage is ready to store and display toy cars or other figurines."
+    ]
+  },
+  {
+    id: 4,
+    recipe_name: "Geometric Wall Organizers",
+    end_product: "Triangular cardboard baskets mounted on the wall for storing craft supplies and stationery.",
+    material_id: 1,
+    requires_glue: true,
+    requires_scissors: true,
+    requires_tape: true,
+    requires_string: true,
+    requires_paint: true,
+    difficulty: 3,
+    supervision_required: true,
+    steps: [
+      "Draw a template of three equilateral triangles on cardboard.",
+      "Cut the pattern using scissors.",
+      "Draw lines down the middle of the side triangles and score along them using one blade of the scissors.",
+      "Fold along the scored lines and join the edges to form a triangle basket, using tape to hold temporarily.",
+      "Paint the baskets with any colour you like and leave to dry.",
+      "Glue the baskets onto a larger cardboard base using PVA glue and leave to dry fully.",
+      "Glue a cardboard strip to the top of the base and thread string through holes to make a hanging mechanism."
+    ]
+  },
+  {
+    id: 5,
+    recipe_name: "Nok Hockey Game",
+    end_product: "A handmade tabletop hockey game built from cardboard boxes that two players can compete against each other.",
+    material_id: 1,
+    requires_glue: true,
+    requires_scissors: true,
+    requires_tape: true,
+    requires_string: false,
+    requires_paint: false,
+    difficulty: 4,
+    supervision_required: true,
+    steps: [
+      "Cut a large rectangle base from cardboard boxes, taping pieces together if necessary.",
+      "Mark the centre line with masking tape.",
+      "Create sideboards by gluing two layers of cardboard together for height and support using PVA glue, hold with tape while drying.",
+      "Cut goal slots into the centre of the short sideboards using scissors.",
+      "Glue the sideboards to the base using PVA glue and tape while drying.",
+      "Construct goal blocks by gluing four layers of cardboard together and attaching them near the goal walls.",
+      "Make pucks and sticks by gluing three layers of cardboard shapes together and leaving to dry."
+    ]
+  },
+  {
+    id: 6,
+    recipe_name: "Storage Shelf",
+    end_product: "A sturdy cardboard shelf built from a single box capable of holding books and small household items.",
+    material_id: 1,
+    requires_glue: true,
+    requires_scissors: true,
+    requires_tape: true,
+    requires_string: false,
+    requires_paint: false,
+    difficulty: 4,
+    supervision_required: true,
+    steps: [
+      "Cut four legs from the corners of a large cardboard box using scissors.",
+      "Cut four shelves from the sides of the box, leaving extra cardboard on the edges for folding.",
+      "Bend the shelf sides by pressing firmly with a ruler along the fold lines.",
+      "Glue the shelf corners with PVA glue and tape to hold them while drying.",
+      "Reinforce the shelves by gluing extra cardboard pieces to the sides.",
+      "Assemble by gluing the top and bottom shelves to two legs first, then adding the middle shelves and remaining legs.",
+      "Leave to dry fully before placing any items on the shelf."
+    ]
+  },
+  {
+    id: 7,
+    recipe_name: "Tensegrity Pen Holder",
+    end_product: "A floating desk accessory that uses string tension to suspend a platform for holding pens and small items.",
+    material_id: 1,
+    requires_glue: true,
+    requires_scissors: true,
+    requires_tape: false,
+    requires_string: true,
+    requires_paint: false,
+    difficulty: 5,
+    supervision_required: true,
+    steps: [
+      "Cut 16 identical U shapes from cardboard using a template.",
+      "Glue them into four stacks of four using PVA glue and leave to dry.",
+      "Twist string between the ends of two U stacks then glue the remaining two stacks on top to sandwich the string.",
+      "Construct the pen holder box by gluing stacked cardboard pieces into a U shape and attaching side panels.",
+      "Use a pencil to punch holes into cardboard squares and feed two strands of string through each corner.",
+      "Glue the unravelled ends of the string to a cardboard square and sandwich with another square.",
+      "Glue the tensegrity block to the centre of the base and the bottom of the pen holder.",
+      "Feed the strands through the pen holder lip and adjust them until balanced, then knot and glue into place."
+    ]
+  },
 
   // PAPER
-  { id: 8, recipe_name: "Origami Corner Bookmark", end_product: "A small triangular paper bookmark that slots onto the corner of a page to mark your place in a book.", material_id: 2, requires_glue: false, requires_scissors: false, requires_tape: false, requires_string: false, requires_paint: false, difficulty: 1, supervision_required: false },
-  { id: 9, recipe_name: "Origami Box with Lid", end_product: "A folded paper box with a matching lid used for storing small items like paper clips and sweets.", material_id: 2, requires_glue: false, requires_scissors: false, requires_tape: false, requires_string: false, requires_paint: false, difficulty: 2, supervision_required: false },
-  { id: 10, recipe_name: "Ninja Star", end_product: "A folded paper throwing star that can be used as a toy or displayed as a desk decoration.", material_id: 2, requires_glue: false, requires_scissors: false, requires_tape: false, requires_string: false, requires_paint: false, difficulty: 2, supervision_required: false },
-  { id: 11, recipe_name: "Newspaper Origami Envelope", end_product: "A rectangular envelope folded from newspaper used for sending letters and cards.", material_id: 2, requires_glue: false, requires_scissors: true, requires_tape: true, requires_string: false, requires_paint: true, difficulty: 2, supervision_required: false },
-  { id: 12, recipe_name: "Newspaper Rings Basket", end_product: "A woven bowl-like basket made from rolled newspaper rings used as a container or coaster.", material_id: 2, requires_glue: false, requires_scissors: false, requires_tape: true, requires_string: false, requires_paint: true, difficulty: 3, supervision_required: false },
-  { id: 13, recipe_name: "DIY Gift Bag", end_product: "A custom gift bag with handles made from any decorative paper used for presenting gifts.", material_id: 2, requires_glue: true, requires_scissors: true, requires_tape: true, requires_string: true, requires_paint: false, difficulty: 3, supervision_required: false },
-  { id: 14, recipe_name: "Origami Diamond Divider Box", end_product: "A folded paper storage box with a diamond shaped divider insert for keeping small items separated.", material_id: 2, requires_glue: false, requires_scissors: false, requires_tape: false, requires_string: false, requires_paint: false, difficulty: 4, supervision_required: false },
-  { id: 15, recipe_name: "Origami Drawers Box", end_product: "A folded paper box with pull out drawers used for organising small items on a desk.", material_id: 2, requires_glue: false, requires_scissors: false, requires_tape: false, requires_string: false, requires_paint: false, difficulty: 4, supervision_required: false },
-  { id: 16, recipe_name: "Birds Nest Lampshade", end_product: "A woven lampshade made from rolled newspaper tubes that creates a natural textured pattern when lit.", material_id: 2, requires_glue: true, requires_scissors: true, requires_tape: false, requires_string: false, requires_paint: true, difficulty: 5, supervision_required: true },
+  {
+    id: 8,
+    recipe_name: "Origami Corner Bookmark",
+    end_product: "A small triangular paper bookmark that slots onto the corner of a page to mark your place in a book.",
+    material_id: 2,
+    requires_glue: false,
+    requires_scissors: false,
+    requires_tape: false,
+    requires_string: false,
+    requires_paint: false,
+    difficulty: 1,
+    supervision_required: false,
+    steps: [
+      "Fold the square in half diagonally to create a triangle.",
+      "Fold the bottom right and left corners up to meet the top centre point.",
+      "Open those corners back out so you are back to a flat triangle.",
+      "Take only the top layer of the top point and fold it down to the bottom edge to create a pocket.",
+      "Fold the right and left corners back up and tuck them inside that pocket.",
+      "Press it flat and slide it onto the corner of your book."
+    ]
+  },
+  {
+    id: 9,
+    recipe_name: "Origami Box with Lid",
+    end_product: "A folded paper box with a matching lid used for storing small items like paper clips and sweets.",
+    material_id: 2,
+    requires_glue: false,
+    requires_scissors: false,
+    requires_tape: false,
+    requires_string: false,
+    requires_paint: false,
+    difficulty: 2,
+    supervision_required: false,
+    steps: [
+      "Fold and unfold the paper in half both ways to make a cross, then fold all four corners into the centre point.",
+      "Fold the top and bottom edges to the centre and unfold, then repeat with the side edges.",
+      "Open the top and bottom flaps, then pull the sides up at a 90 degree angle to make walls.",
+      "Push the corners inward to form the box shape and fold the top and bottom flaps over the edges to lock in place.",
+      "For the lid follow the same steps but leave a small gap between the corners and the centre point so the lid fits over the box."
+    ]
+  },
+  {
+    id: 10,
+    recipe_name: "Ninja Star",
+    end_product: "A folded paper throwing star that can be used as a toy or displayed as a desk decoration.",
+    material_id: 2,
+    requires_glue: false,
+    requires_scissors: false,
+    requires_tape: false,
+    requires_string: false,
+    requires_paint: false,
+    difficulty: 2,
+    supervision_required: false,
+    steps: [
+      "Fold both squares in half to make thin rectangles, then fold them in half again.",
+      "Fold the ends of the strips into opposite diagonal shapes so they look like mirror images of each other.",
+      "Fold the ends again to create two triangles on each strip making them look like a Z or S shape.",
+      "Place one piece across the other to form a cross.",
+      "Fold the points of the bottom piece over and tuck them into the pockets of the top piece.",
+      "Flip it over and tuck the remaining points into the pockets on the other side to lock it together."
+    ]
+  },
+  {
+    id: 11,
+    recipe_name: "Newspaper Origami Envelope",
+    end_product: "A rectangular envelope folded from newspaper used for sending letters and cards.",
+    material_id: 2,
+    requires_glue: false,
+    requires_scissors: true,
+    requires_tape: false,
+    requires_string: false,
+    requires_paint: false,
+    difficulty: 2,
+    supervision_required: false,
+    steps: [
+      "Fold one corner of your newspaper over to make a triangle and cut off the extra bit to make a perfect square.",
+      "Fold the bottom edge up by about 1cm then fold it again to reach the middle line.",
+      "Turn the bottom corners in and fold the sides toward the middle.",
+      "Fold the top corners in to make a triangle flap then fold the whole flap down and tuck it in to close the envelope."
+    ]
+  },
+  {
+    id: 12,
+    recipe_name: "DIY Gift Bag",
+    end_product: "A custom gift bag with handles made from any decorative paper used for presenting gifts.",
+    material_id: 2,
+    requires_glue: true,
+    requires_scissors: false,
+    requires_tape: true,
+    requires_string: true,
+    requires_paint: false,
+    difficulty: 3,
+    supervision_required: false,
+    steps: [
+      "Wrap your paper around a cereal box like a present but keep the top open.",
+      "Glue the side edge and tape the bottom of the paper shut.",
+      "Slide the box out and put a piece of cardboard in the bottom to make it strong.",
+      "Pinch the sides to make neat creases and use a pencil to poke two holes at the top.",
+      "Thread your string handles through the holes and tie knots to keep them in place."
+    ]
+  },
+  {
+    id: 13,
+    recipe_name: "Origami Photo Frame",
+    end_product: "A folded paper photo frame used to display a favourite picture or piece of artwork.",
+    material_id: 2,
+    requires_glue: false,
+    requires_scissors: false,
+    requires_tape: false,
+    requires_string: false,
+    requires_paint: false,
+    difficulty: 2,
+    supervision_required: false,
+    steps: [
+      "Fold the paper in half both ways and unfold.",
+      "Fold all four edges in about 2cm to make a border.",
+      "Flip the paper over and fold each of the new corners into the centre point.",
+      "Flip it back over and you will see your frame.",
+      "Slide your photo under the corner flaps to hold it in place."
+    ]
+  },
+  {
+    id: 14,
+    recipe_name: "Newspaper Rings Basket",
+    end_product: "A woven bowl-like basket made from rolled newspaper rings used as a container or coaster.",
+    material_id: 2,
+    requires_glue: true,
+    requires_scissors: false,
+    requires_tape: true,
+    requires_string: false,
+    requires_paint: true,
+    difficulty: 3,
+    supervision_required: false,
+    steps: [
+      "Roll newspaper sheets into tight tubes using a pencil then flatten them by rolling a heavy object over them.",
+      "Coil a flattened tube into a tight circle gluing as you go until it is about 7cm wide to make the base.",
+      "Wrap flattened tubes around a mug and tape the ends to make large rings.",
+      "Wrap tubes around a smaller container to make smaller rings.",
+      "Glue the smaller rings around the base then glue the larger rings on top to build the basket walls.",
+      "Paint the basket when dry."
+    ]
+  },
+  {
+    id: 15,
+    recipe_name: "Birds Nest Lampshade",
+    end_product: "A woven lampshade made from rolled newspaper tubes that creates a natural textured pattern when lit.",
+    material_id: 2,
+    requires_glue: true,
+    requires_scissors: true,
+    requires_tape: false,
+    requires_string: false,
+    requires_paint: false,
+    difficulty: 5,
+    supervision_required: true,
+    steps: [
+      "Roll thin tubes of newspaper using a pencil and glue the ends shut. You will need a large number of tubes.",
+      "Trim the ends of the tubes with scissors so they are all the same length.",
+      "Stack the tubes on top of each other in a messy overlapping circle just like a birds nest gluing them together as you go.",
+      "Once dry and strong sit it on top of a small lamp."
+    ]
+  },
+  {
+    id: 16,
+    recipe_name: "Newspaper Placemat",
+    end_product: "A woven placemat made from newspaper strips used to protect your table at mealtimes.",
+    material_id: 2,
+    requires_glue: true,
+    requires_scissors: true,
+    requires_tape: false,
+    requires_string: false,
+    requires_paint: true,
+    difficulty: 3,
+    supervision_required: false,
+    steps: [
+      "Cut newspaper pages in half and fold them into long flat strips.",
+      "Weave the strips together starting from the middle and working outward.",
+      "Use dots of glue to keep the strips from moving while you work.",
+      "When it is big enough glue a final strip around the edge to cover the messy ends.",
+      "Paint it with bright colours and add a layer of PVA glue to make it shiny and tough."
+    ]
+  },
 
   // PLASTIC
-  { id: 17, recipe_name: "Bowling Set", end_product: "A set of ten plastic bottles filled with sand used as bowling pins for an indoor or outdoor game.", material_id: 3, requires_glue: false, requires_scissors: false, requires_tape: false, requires_string: false, requires_paint: false, difficulty: 1, supervision_required: false },
-  { id: 18, recipe_name: "Plastic Bottle Shaker", end_product: "A plastic bottle filled with dried beans or rice that creates different sounds when shaken as a musical instrument.", material_id: 3, requires_glue: false, requires_scissors: false, requires_tape: false, requires_string: false, requires_paint: true, difficulty: 1, supervision_required: false },
-  { id: 19, recipe_name: "Piggy Bank", end_product: "A plastic bottle decorated to look like a pig with a coin slot cut into the top for saving money.", material_id: 3, requires_glue: true, requires_scissors: true, requires_tape: false, requires_string: false, requires_paint: true, difficulty: 2, supervision_required: false },
-  { id: 20, recipe_name: "Woven Basket", end_product: "A milk carton woven with coloured wool to create a decorative basket used as a gift box or storage container.", material_id: 3, requires_glue: false, requires_scissors: true, requires_tape: false, requires_string: true, requires_paint: false, difficulty: 3, supervision_required: false },
-  { id: 21, recipe_name: "Yogurt Pot Snake", end_product: "A chain of linked yogurt pots decorated to look like a snake used as a toy or room decoration.", material_id: 3, requires_glue: true, requires_scissors: true, requires_tape: false, requires_string: true, requires_paint: true, difficulty: 3, supervision_required: true },
-  { id: 22, recipe_name: "Plastic Bottle Soaker", end_product: "A plastic bottle converted into a water soaker toy by puncturing holes in the cap for outdoor summer play.", material_id: 3, requires_glue: false, requires_scissors: true, requires_tape: true, requires_string: false, requires_paint: false, difficulty: 3, supervision_required: true },
-  { id: 23, recipe_name: "Jewelry Stand", end_product: "A tiered stand made from plastic bottles connected with string used for organising and displaying jewelry and accessories.", material_id: 3, requires_glue: false, requires_scissors: true, requires_tape: false, requires_string: true, requires_paint: false, difficulty: 4, supervision_required: true }
+  {
+    id: 17,
+    recipe_name: "Bowling Set",
+    end_product: "A set of ten plastic bottles filled with sand used as bowling pins for an indoor or outdoor game.",
+    material_id: 3,
+    requires_glue: false,
+    requires_scissors: false,
+    requires_tape: false,
+    requires_string: false,
+    requires_paint: false,
+    difficulty: 1,
+    supervision_required: false,
+    steps: [
+      "Fill each of your 10 bottles with a little sand or water to make them heavy so they do not blow away.",
+      "Put the caps back on tightly.",
+      "Set the bottles up in a triangle shape like real bowling pins.",
+      "Grab a small ball, roll it, and try to knock them all down!"
+    ]
+  },
+  {
+    id: 18,
+    recipe_name: "Plastic Bottle Shaker",
+    end_product: "A plastic bottle filled with dried beans or rice that creates different sounds when shaken as a musical instrument.",
+    material_id: 3,
+    requires_glue: false,
+    requires_scissors: false,
+    requires_tape: false,
+    requires_string: false,
+    requires_paint: true,
+    difficulty: 1,
+    supervision_required: false,
+    steps: [
+      "Wash and dry your bottle and remove the label.",
+      "Paint your bottle and lid with bright colours. You may need a few thin layers.",
+      "Once the paint is dry roll a piece of paper into a funnel shape and place it in the top of the bottle.",
+      "Use a spoon to put 3 or 4 scoops of beans, lentils, or rice into the bottle.",
+      "Screw the lid on tightly and shake to make music!"
+    ]
+  },
+  {
+    id: 19,
+    recipe_name: "Piggy Bank",
+    end_product: "A plastic bottle decorated to look like a pig with a coin slot cut into the top for saving money.",
+    material_id: 3,
+    requires_glue: true,
+    requires_scissors: true,
+    requires_tape: false,
+    requires_string: false,
+    requires_paint: true,
+    difficulty: 2,
+    supervision_required: false,
+    steps: [
+      "Use a pencil to poke two holes about 2cm apart into the top of your bottle.",
+      "Slide scissors in and cut a small slit between the holes for your coins.",
+      "Paint the bottle pink and leave to dry.",
+      "Cut two paper circles and glue them to the bottle cap to make a nose, colour them black.",
+      "Cut two paper ear shapes and glue them near the spout, draw on eyes with a marker.",
+      "Cut four small circles from paper and glue them to the bottom as trotters.",
+      "Cut a thin strip of paper and drag a pencil along it to make it curl into a tail, glue it to the back and paint it pink."
+    ]
+  },
+  {
+    id: 20,
+    recipe_name: "Woven Basket",
+    end_product: "A milk carton woven with coloured string to create a decorative basket used as a gift box or storage container.",
+    material_id: 3,
+    requires_glue: false,
+    requires_scissors: true,
+    requires_tape: true,
+    requires_string: true,
+    requires_paint: false,
+    difficulty: 3,
+    supervision_required: false,
+    steps: [
+      "Cut your carton in half and save a long strip of plastic to use as a handle later.",
+      "Cut upright strips down the sides of the bottom half. You need an odd number like 7 or 9 for the weaving to work.",
+      "Tie a knot in your string around one strip and start weaving it in and out of the other strips.",
+      "To change colours just tie a new piece of string to the old one.",
+      "When you are done weaving tape the handle strip to the sides of your basket."
+    ]
+  },
+  {
+    id: 21,
+    recipe_name: "Yogurt Pot Snake",
+    end_product: "A chain of linked yogurt pots decorated to look like a snake used as a toy or room decoration.",
+    material_id: 3,
+    requires_glue: true,
+    requires_scissors: true,
+    requires_tape: false,
+    requires_string: true,
+    requires_paint: true,
+    difficulty: 3,
+    supervision_required: true,
+    steps: [
+      "Paint each of the yogurt pots to decorate them and leave to dry.",
+      "Use a pencil to poke a hole in the middle of the bottom of the first pot which will be the head.",
+      "Pull your string through the hole, draw eyes and glue a paper tongue onto the head.",
+      "Poke holes in the rest of the pots and thread them onto the string one by one.",
+      "Face the pots toward each other so the open tops touch.",
+      "Tie a big knot at the end and make a loop with the string so you can pull your snake along."
+    ]
+  },
+  {
+    id: 22,
+    recipe_name: "Plastic Bottle Water Gun",
+    end_product: "A plastic bottle converted into a water gun toy for outdoor summer play.",
+    material_id: 3,
+    requires_glue: false,
+    requires_scissors: true,
+    requires_tape: true,
+    requires_string: false,
+    requires_paint: false,
+    difficulty: 3,
+    supervision_required: true,
+    steps: [
+      "Use a pencil to poke a hole in the bottle cap.",
+      "Use scissors to carefully widen the hole just enough for a straw to fit through.",
+      "Push a straw through the hole.",
+      "Wrap tape tightly around where the straw meets the cap to seal it so no water leaks out.",
+      "Cut the straw so it almost touches the bottom of the bottle when the cap is on.",
+      "Fill the bottle with water, screw the cap on tightly, and squeeze the bottle to shoot water!"
+    ]
+  },
+  {
+    id: 23,
+    recipe_name: "Jewelry Stand",
+    end_product: "A tiered stand made from plastic bottles connected with string used for organising and displaying jewelry and accessories.",
+    material_id: 3,
+    requires_glue: false,
+    requires_scissors: true,
+    requires_tape: true,
+    requires_string: true,
+    requires_paint: false,
+    difficulty: 4,
+    supervision_required: true,
+    steps: [
+      "Use a pencil to poke a hole in the bottom of each bottle then use scissors to widen it.",
+      "Cut the tops and bottoms off the bottles using scissors to make flat plastic sheets.",
+      "Roll each plastic sheet into a rod shape and secure with tape.",
+      "Cut the bottoms off two bottles to use as the tiers of the stand.",
+      "Thread string through the bottom of one bottle tier, through a rod, and through the bottom of the next tier.",
+      "Secure with a knot and repeat to add more tiers.",
+      "Hang your jewelry over the edges of each tier."
+    ]
+  }
 ];
 
 // ─── SCREEN 1: Material Selection ───────────────────────────────────────────
