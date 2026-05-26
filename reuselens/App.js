@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, FlatList } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, FlatList, Linking } from "react-native";
 
 const materials_data = [
   { id: 1, name: "Cardboard", wet_ok: false, dirty_ok: false, ripped_ok: true, washable: false, wash_instructions: null },
@@ -487,6 +487,32 @@ const recipes_data = [
   }
 ];
 
+const recipe_references = {
+  1:  { source_name: "Corn on the Cob Pencil Holder",       source_url: "https://funfamilycrafts.com/corn-on-the-cob-pencil-holder/" },
+  2:  { source_name: "Vase from Recycled Materials",         source_url: "https://funfamilycrafts.com/vase-with-recycled-materials/" },
+  3:  { source_name: "Toy Car Parking Garage",               source_url: "https://funfamilycrafts.com/wooden-crate-parking-garage/" },
+  4:  { source_name: "DIY Geometric Wall Organiser",         source_url: "https://funfamilycrafts.com/wooden-crate-parking-garage/" },
+  5:  { source_name: "Cardboard Nok Hockey",                 source_url: "https://www.instructables.com/Cardboard-Nok-Hockey/" },
+  6:  { source_name: "Cardboard Storage Shelf",              source_url: "https://www.instructables.com/Cardboard-Storage-Shelf-From-Single-Box/" },
+  7:  { source_name: "DIY Cardboard Tensegrity Pen Holder",  source_url: "https://www.instructables.com/DIY-Cardboard-Tensegrity-Pen-Holder/" },
+  8:  { source_name: "Origami Corner Bookmark",              source_url: "https://www.gatheringbeauty.com/blog//2017/11/make-your-own-origami-corner-bookmarks.html" },
+  9:  { source_name: "Origami Box with Lid (Masu Box)",      source_url: "https://origami.me/box/" },
+  10: { source_name: "Ninja Star (Shuriken)",                source_url: "https://frugalfun4boys.com/fold-paper-ninja-stars/" },
+  11: { source_name: "Newspaper Origami Envelope",           source_url: "https://www.redtedart.com/newspaper-origami-envelope/" },
+  12: { source_name: "DIY Gift Bag",                         source_url: "https://www.kellyelko.com/diy-gift-bags-from-any-paper/" },
+  13: { source_name: "Origami Photo Frame",                  source_url: "https://makeandtakes.com/super-simple-origami-picture-frames" },
+  14: { source_name: "Newspaper Rings Basket",               source_url: "https://crazeekidsart.com/newspaper-crafts-for-kids/" },
+  15: { source_name: "Birds Nest Lampshade",                 source_url: "https://www.catchmyparty.com/blog/diy-how-to-make-a-birds-nest-lamp-shade-out-of-newspaper" },
+  16: { source_name: "Newspaper Placemat",                   source_url: "https://www.instructables.com/Old-Newspaper-Placemats-and-Coaster/" },
+  17: { source_name: "Bowling Set",                          source_url: "https://www.plasticexpert.co.uk/diy-easy-plastic-bottle-craft-ideas/" },
+  18: { source_name: "Plastic Bottle Shaker",                source_url: "https://www.things-to-make-and-do.co.uk/other-stuff/musical-instruments/plastic-bottle-shaker.html" },
+  19: { source_name: "Piggy Bank",                           source_url: "https://www.ourkidthings.com/diy-water-bottle-piggy-banks/" },
+  20: { source_name: "Woven Basket",                         source_url: "https://www.redtedart.com/milk-carton-woven-basket-craft/" },
+  21: { source_name: "Yogurt Pot Snake",                     source_url: "https://www.diythought.com/yogurt-pot-snake/" },
+  22: { source_name: "Plastic Bottle Water Gun",             source_url: "https://rediscovercenter.org/make-a-plastic-bottle-soaker/" },
+  23: { source_name: "Jewelry Stand",                        source_url: "https://www.thriftyfun.com/Upcycled-Plastic-Bottle-Jewelry-Stand-1.html" },
+};
+
 // ─── SCREEN 1: Material Selection ───────────────────────────────────────────
 function MaterialScreen({ onSelect }) {
   const materialList = [
@@ -662,7 +688,7 @@ function ToolScreen({ onSubmit }) {
 }
 
 // ─── SCREEN 6: Recipe List ───────────────────────────────────────────────────
-function RecipeScreen({ materialId, tools, onRestart }) {
+function RecipeScreen({ materialId, tools, onRestart, onSelectRecipe }) {
   const [recipeList, setRecipeList] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -716,7 +742,7 @@ function RecipeScreen({ materialId, tools, onRestart }) {
         data={recipeList}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
-          <View style={styles.recipeCard}>
+          <TouchableOpacity style={styles.recipeCard} onPress={() => onSelectRecipe(item)}>
             <View style={styles.recipePlaceholderImage}>
               <Text style={styles.placeholderText}>📷 Image coming soon</Text>
             </View>
@@ -728,13 +754,61 @@ function RecipeScreen({ materialId, tools, onRestart }) {
                 <Text style={styles.supervisionBadge}>⚠️ Adult supervision needed</Text>
               )}
             </View>
-          </View>
+          </TouchableOpacity>
         )}
       />
       <TouchableOpacity style={[styles.button, { marginTop: 12 }]} onPress={onRestart}>
         <Text style={styles.buttonText}>Start again</Text>
       </TouchableOpacity>
     </View>
+  );
+}
+
+// ─── SCREEN 7: Recipe Detail ─────────────────────────────────────────────────
+function RecipeDetailScreen({ recipe, onBack }) {
+  const ref = recipe_references[recipe.id];
+  const stars = (n) => "★".repeat(n) + "☆".repeat(5 - n);
+
+  return (
+    <ScrollView contentContainerStyle={styles.detailContainer}>
+      <TouchableOpacity style={styles.backButton} onPress={onBack}>
+        <Text style={styles.backButtonText}>← Back</Text>
+      </TouchableOpacity>
+
+      <Text style={styles.detailTitle}>{recipe.recipe_name}</Text>
+
+      {ref && (
+        <TouchableOpacity onPress={() => Linking.openURL(ref.source_url)}>
+          <Text style={styles.adaptedFrom}>Adapted from: {ref.source_name}</Text>
+        </TouchableOpacity>
+      )}
+
+      <View style={styles.detailPlaceholderImage}>
+        <Text style={styles.placeholderText}>📷 Image coming soon</Text>
+      </View>
+
+      <Text style={styles.detailDescription}>{recipe.end_product}</Text>
+
+      <View style={styles.detailMeta}>
+        <Text style={styles.stars}>{stars(recipe.difficulty)}</Text>
+        {recipe.supervision_required && (
+          <Text style={styles.supervisionBadge}>⚠️ Adult supervision needed</Text>
+        )}
+      </View>
+
+      <Text style={styles.sectionHeading}>Steps</Text>
+      {recipe.steps.map((step, index) => (
+        <View key={index} style={styles.stepRow}>
+          <Text style={styles.stepNumber}>{index + 1}</Text>
+          <Text style={styles.stepText}>{step}</Text>
+        </View>
+      ))}
+
+      <Text style={styles.sectionHeading}>Top Tips</Text>
+      <View style={styles.topTipsBox}>
+        <Text style={styles.topTipsPlaceholder}>💡 Top tips coming soon!</Text>
+      </View>
+    </ScrollView>
   );
 }
 
@@ -745,6 +819,7 @@ export default function App() {
   const [tools, setTools] = useState(null);
   const [notReuseableReason, setNotReuseableReason] = useState("");
   const [washInstructions, setWashInstructions] = useState("");
+  const [selectedRecipe, setSelectedRecipe] = useState(null);
 
   const handleMaterialSelect = (m) => {
     setMaterial(m);
@@ -768,10 +843,16 @@ export default function App() {
     setScreen("recipes");
   };
 
+  const handleSelectRecipe = (recipe) => {
+    setSelectedRecipe(recipe);
+    setScreen("recipeDetail");
+  };
+
   const restart = () => {
     setScreen("material");
     setMaterial(null);
     setTools(null);
+    setSelectedRecipe(null);
   };
 
   return (
@@ -781,7 +862,20 @@ export default function App() {
       {screen === "notReuseable" && <NotReuseableScreen reason={notReuseableReason} onRestart={restart} />}
       {screen === "wash" && <WashScreen instructions={washInstructions} onContinue={() => setScreen("tools")} />}
       {screen === "tools" && <ToolScreen onSubmit={handleToolSubmit} />}
-      {screen === "recipes" && <RecipeScreen materialId={material.id} tools={tools} onRestart={restart} />}
+      {screen === "recipes" && (
+        <RecipeScreen
+          materialId={material.id}
+          tools={tools}
+          onRestart={restart}
+          onSelectRecipe={handleSelectRecipe}
+        />
+      )}
+      {screen === "recipeDetail" && selectedRecipe && (
+        <RecipeDetailScreen
+          recipe={selectedRecipe}
+          onBack={() => setScreen("recipes")}
+        />
+      )}
     </ScrollView>
   );
 }
@@ -919,5 +1013,95 @@ const styles = StyleSheet.create({
     color: "#e65100",
     fontWeight: "600",
     marginTop: 4,
+  },
+  detailContainer: {
+    padding: 24,
+    backgroundColor: "#f0f4f8",
+  },
+  backButton: {
+    marginBottom: 16,
+    alignSelf: "flex-start",
+  },
+  backButtonText: {
+    fontSize: 16,
+    color: "#4a6fa5",
+    fontWeight: "600",
+  },
+  detailTitle: {
+    fontSize: 26,
+    fontWeight: "700",
+    color: "#2c3e50",
+    marginBottom: 6,
+  },
+  adaptedFrom: {
+    fontSize: 14,
+    color: "#4a6fa5",
+    textDecorationLine: "underline",
+    marginBottom: 20,
+  },
+  detailPlaceholderImage: {
+    width: "100%",
+    height: 200,
+    backgroundColor: "#e8edf2",
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 16,
+  },
+  detailDescription: {
+    fontSize: 15,
+    color: "#555",
+    marginBottom: 12,
+    lineHeight: 22,
+  },
+  detailMeta: {
+    marginBottom: 24,
+  },
+  sectionHeading: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#2c3e50",
+    marginBottom: 12,
+    marginTop: 8,
+  },
+  stepRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginBottom: 12,
+  },
+  stepNumber: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "#4a6fa5",
+    color: "white",
+    fontSize: 14,
+    fontWeight: "700",
+    textAlign: "center",
+    lineHeight: 28,
+    marginRight: 12,
+    flexShrink: 0,
+  },
+  stepText: {
+    flex: 1,
+    fontSize: 15,
+    color: "#444",
+    lineHeight: 22,
+    paddingTop: 4,
+  },
+  topTipsBox: {
+    backgroundColor: "#fffde7",
+    borderRadius: 12,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: "#ffe082",
+    marginTop: 4,
+    marginBottom: 32,
+    alignItems: "center",
+  },
+  topTipsPlaceholder: {
+    fontSize: 15,
+    color: "#888",
+    fontStyle: "italic",
   },
 });
