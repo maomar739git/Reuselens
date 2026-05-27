@@ -1,10 +1,17 @@
 import { useState } from "react";
 import {
   View, Text, TouchableOpacity, ScrollView, StyleSheet,
-  FlatList, Linking, Image, Alert, SafeAreaView,
+  FlatList, Linking, Image, Alert, SafeAreaView, ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { StatusBar } from "expo-status-bar";
+import * as ImagePicker from "expo-image-picker";
+
+// ─── BACKEND ─────────────────────────────────────────────────────────────────
+// iOS simulator  → http://localhost:8000
+// Android emu    → http://10.0.2.2:8000
+// Physical device → http://<your-local-ip>:8000
+const API_URL = "http://localhost:8000";
 
 // ─── THEME ───────────────────────────────────────────────────────────────────
 const C = {
@@ -456,8 +463,64 @@ function HomeScreen({ onStartScan }) {
 }
 
 // ─── SCAN SCREEN ─────────────────────────────────────────────────────────────
-function ScanScreen({ onBack }) {
+function ScanScreen({ onBack, onClassificationResult }) {
   const [image, setImage] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const takePhoto = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permission needed", "Camera access is required to take a photo.");
+      return;
+    }
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: "images",
+      allowsEditing: true,
+      quality: 0.8,
+    });
+    if (!result.canceled) setImage(result.assets[0].uri);
+  };
+
+  const chooseFromLibrary = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permission needed", "Photo library access is required.");
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: "images",
+      allowsEditing: true,
+      quality: 0.8,
+    });
+    if (!result.canceled) setImage(result.assets[0].uri);
+  };
+
+  const analyseWithAI = async () => {
+    if (!image) {
+      Alert.alert("No image", "Please take or choose a photo first.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", { uri: image, type: "image/jpeg", name: "image.jpg" });
+      const response = await fetch(`${API_URL}/classify`, {
+        method: "POST",
+        body: formData,
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      if (!response.ok) throw new Error(`Server error ${response.status}`);
+      const data = await response.json();
+      onClassificationResult(data.label, data.confidence);
+    } catch (err) {
+      Alert.alert(
+        "Connection error",
+        "Could not reach the AI server.\n\nMake sure the backend is running:\n  cd backend && uvicorn main:app"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
@@ -485,30 +548,90 @@ function ScanScreen({ onBack }) {
           </View>
         )}
 
-        <TouchableOpacity
-          style={styles.scanPrimaryButton}
-          onPress={() => Alert.alert("Camera", "Camera integration coming soon.")}
-        >
+        <TouchableOpacity style={styles.scanPrimaryButton} onPress={takePhoto} disabled={loading}>
           <Ionicons name="camera" size={20} color={C.bg} />
           <Text style={styles.scanPrimaryButtonText}>  Take New Photo</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.scanSecondaryButton}
-          onPress={() => Alert.alert("Library", "Library integration coming soon.")}
-        >
+        <TouchableOpacity style={styles.scanSecondaryButton} onPress={chooseFromLibrary} disabled={loading}>
           <Ionicons name="images" size={20} color={C.primary} />
           <Text style={styles.scanSecondaryButtonText}>  Choose from Library</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.scanPrimaryButton, { marginTop: 8 }]}
-          onPress={() => Alert.alert("AI", "AI analysis coming soon.")}
+          style={[styles.scanPrimaryButton, { marginTop: 8, opacity: loading || !image ? 0.5 : 1 }]}
+          onPress={analyseWithAI}
+          disabled={loading || !image}
         >
-          <Text style={styles.scanPrimaryButtonText}>Analyse with AI</Text>
+          {loading ? (
+            <ActivityIndicator color={C.bg} />
+          ) : (
+            <Text style={styles.scanPrimaryButtonText}>Analyse with AI</Text>
+          )}
         </TouchableOpacity>
       </ScrollView>
     </View>
+  );
+}
+
+// ─── CLASSIFICATION RESULT SCREEN ─────────────────────────────────────────────
+const MATERIAL_META = {
+  cardboard: { id: 1, name: "Cardboard", emoji: "📦" },
+  paper:     { id: 2, name: "Paper",     emoji: "📄" },
+  plastic:   { id: 3, name: "Plastic",   emoji: "🧴" },
+};
+
+function ClassificationResultScreen({ label, confidence, onConfirm }) {
+  const [showManual, setShowManual] = useState(false);
+  const lowConfidence = confidence < 0.70;
+  const meta = MATERIAL_META[label];
+
+  if (showManual) {
+    return (
+      <View style={styles.classContainer}>
+        <Text style={styles.classHeading}>Choose your material</Text>
+        <Text style={styles.classSub}>Select the correct material below</Text>
+        {Object.values(MATERIAL_META).map((m) => (
+          <TouchableOpacity key={m.id} style={styles.materialCard} onPress={() => onConfirm(m.name.toLowerCase())}>
+            <Text style={styles.materialEmoji}>{m.emoji}</Text>
+            <Text style={styles.materialName}>{m.name}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    );
+  }
+
+  return (
+    <ScrollView contentContainerStyle={styles.classContainer}>
+      {lowConfidence && (
+        <View style={styles.lowConfBox}>
+          <Ionicons name="alert-circle-outline" size={18} color={C.tipText} />
+          <Text style={styles.lowConfText}>
+            {"  "}Low confidence — {Math.round(confidence * 100)}% sure
+          </Text>
+        </View>
+      )}
+
+      <Text style={styles.classEmoji}>{meta?.emoji ?? "🔍"}</Text>
+      <Text style={styles.classHeading}>We think this is</Text>
+      <Text style={styles.classLabel}>{meta?.name ?? label}</Text>
+      <Text style={styles.classSub}>Is that correct?</Text>
+
+      {!lowConfidence && (
+        <View style={styles.confBar}>
+          <View style={[styles.confFill, { width: `${Math.round(confidence * 100)}%` }]} />
+          <Text style={styles.confLabel}>{Math.round(confidence * 100)}% confidence</Text>
+        </View>
+      )}
+
+      <TouchableOpacity style={styles.scanPrimaryButton} onPress={() => onConfirm(label)}>
+        <Text style={styles.scanPrimaryButtonText}>Yes, that's correct</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={[styles.scanSecondaryButton, { marginTop: 12 }]} onPress={() => setShowManual(true)}>
+        <Text style={styles.scanSecondaryButtonText}>No, let me choose</Text>
+      </TouchableOpacity>
+    </ScrollView>
   );
 }
 
@@ -816,6 +939,7 @@ function RecipeDetailScreen({ recipe, onBack }) {
 export default function App() {
   const [activeTab,          setActiveTab]          = useState("home");
   const [homeScreen,         setHomeScreen]         = useState("home");
+  const [classResult,        setClassResult]        = useState(null);
   const [guideScreen,        setGuideScreen]        = useState("material");
   const [material,           setMaterial]           = useState(null);
   const [tools,              setTools]              = useState(null);
@@ -839,6 +963,45 @@ export default function App() {
       setGuideScreen("wash");
     } else {
       setGuideScreen("tools");
+    }
+  };
+
+  // Called when the backend returns a classification result.
+  const handleClassificationResult = (label, confidence) => {
+    setClassResult({ label, confidence });
+    setHomeScreen("classResult");
+  };
+
+  // Called when the user confirms (or manually selects) a material from the classification screen.
+  const handleConfirmMaterial = (materialKey) => {
+    const meta = MATERIAL_META[materialKey];
+    if (!meta) return;
+    setMaterial({ id: meta.id, name: meta.name, emoji: meta.emoji });
+    setGuideScreen("condition");
+    setActiveTab("guide");
+    setHomeScreen("home");
+    setClassResult(null);
+  };
+
+  const renderHome = () => {
+    switch (homeScreen) {
+      case "scan":
+        return (
+          <ScanScreen
+            onBack={() => setHomeScreen("home")}
+            onClassificationResult={handleClassificationResult}
+          />
+        );
+      case "classResult":
+        return (
+          <ClassificationResultScreen
+            label={classResult.label}
+            confidence={classResult.confidence}
+            onConfirm={handleConfirmMaterial}
+          />
+        );
+      default:
+        return <HomeScreen onStartScan={() => setHomeScreen("scan")} />;
     }
   };
 
@@ -895,11 +1058,7 @@ export default function App() {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar style="light" />
       <View style={{ flex: 1 }}>
-        {activeTab === "home" && (
-          homeScreen === "home"
-            ? <HomeScreen onStartScan={() => setHomeScreen("scan")} />
-            : <ScanScreen onBack={() => setHomeScreen("home")} />
-        )}
+        {activeTab === "home"  && renderHome()}
         {activeTab === "scans" && <MyScansScreen />}
         {activeTab === "guide" && renderGuide()}
       </View>
@@ -1371,5 +1530,75 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: C.muted,
     fontStyle: "italic",
+  },
+
+  // ── Classification result
+  classContainer: {
+    flexGrow: 1,
+    padding: 28,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: C.bg,
+  },
+  lowConfBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: C.tipBg,
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    marginBottom: 24,
+    width: "100%",
+  },
+  lowConfText: {
+    color: C.tipText,
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  classEmoji: {
+    fontSize: 72,
+    marginBottom: 12,
+  },
+  classHeading: {
+    fontSize: 20,
+    color: C.muted,
+    fontWeight: "500",
+    marginBottom: 4,
+  },
+  classLabel: {
+    fontSize: 38,
+    fontWeight: "800",
+    color: C.primary,
+    marginBottom: 8,
+    textTransform: "capitalize",
+  },
+  classSub: {
+    fontSize: 16,
+    color: C.white,
+    marginBottom: 28,
+  },
+  confBar: {
+    width: "100%",
+    height: 28,
+    backgroundColor: C.surface,
+    borderRadius: 14,
+    marginBottom: 28,
+    overflow: "hidden",
+    justifyContent: "center",
+  },
+  confFill: {
+    position: "absolute",
+    left: 0,
+    top: 0,
+    bottom: 0,
+    backgroundColor: C.primaryDark,
+    borderRadius: 14,
+  },
+  confLabel: {
+    textAlign: "center",
+    color: C.primary,
+    fontSize: 13,
+    fontWeight: "600",
+    zIndex: 1,
   },
 });
