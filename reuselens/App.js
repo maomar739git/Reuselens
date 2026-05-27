@@ -6,6 +6,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { StatusBar } from "expo-status-bar";
 import * as ImagePicker from "expo-image-picker";
+import * as ImageManipulator from "expo-image-manipulator";
 
 // ─── HUGGING FACE ─────────────────────────────────────────────────────────────
 // Get a free token at huggingface.co → Settings → Access Tokens → New token (read)
@@ -470,7 +471,18 @@ function ScanScreen({ onBack, onClassificationResult }) {
   const [imageBase64, setImageBase64] = useState(null);
   const [loading,     setLoading]     = useState(false);
 
-  const pickOptions = { mediaTypes: "images", allowsEditing: true, quality: 0.6, base64: true };
+  const pickOptions = { mediaTypes: "images", allowsEditing: true, quality: 0.8 };
+
+  // Resize to max 512px wide and re-encode at low quality so the base64
+  // stays small enough for the HuggingFace API (~50–150 KB).
+  const resizeAndEncode = async (uri) => {
+    const result = await ImageManipulator.manipulateAsync(
+      uri,
+      [{ resize: { width: 512 } }],
+      { compress: 0.5, format: ImageManipulator.SaveFormat.JPEG, base64: true }
+    );
+    return { uri: result.uri, base64: result.base64 };
+  };
 
   const takePhoto = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
@@ -480,8 +492,9 @@ function ScanScreen({ onBack, onClassificationResult }) {
     }
     const result = await ImagePicker.launchCameraAsync(pickOptions);
     if (!result.canceled) {
-      setImageUri(result.assets[0].uri);
-      setImageBase64(result.assets[0].base64);
+      const { uri, base64 } = await resizeAndEncode(result.assets[0].uri);
+      setImageUri(uri);
+      setImageBase64(base64);
     }
   };
 
@@ -493,8 +506,9 @@ function ScanScreen({ onBack, onClassificationResult }) {
     }
     const result = await ImagePicker.launchImageLibraryAsync(pickOptions);
     if (!result.canceled) {
-      setImageUri(result.assets[0].uri);
-      setImageBase64(result.assets[0].base64);
+      const { uri, base64 } = await resizeAndEncode(result.assets[0].uri);
+      setImageUri(uri);
+      setImageBase64(base64);
     }
   };
 

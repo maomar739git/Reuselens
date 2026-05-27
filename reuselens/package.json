@@ -10,6 +10,7 @@
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
     "expo": "~54.0.34",
+    "expo-image-manipulator": "^56.0.15",
     "expo-image-picker": "^56.0.14",
     "expo-status-bar": "~3.0.9",
     "react": "19.1.0",
