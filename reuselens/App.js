@@ -12,16 +12,8 @@ import * as ImagePicker from "expo-image-picker";
 const HF_TOKEN = "hf_YOUR_TOKEN_HERE";
 const HF_URL   = "https://api-inference.huggingface.co/models/openai/clip-vit-base-patch32";
 
-const CLIP_PROMPTS = [
-  "a photo of a cardboard item",
-  "a photo of a plastic item",
-  "a photo of a paper item",
-];
-const PROMPT_TO_LABEL = {
-  "a photo of a cardboard item": "cardboard",
-  "a photo of a plastic item":   "plastic",
-  "a photo of a paper item":     "paper",
-};
+// Short labels — the HF pipeline applies its own "a photo of {label}" template
+const CLIP_LABELS = ["cardboard", "plastic", "paper"];
 
 // ─── THEME ───────────────────────────────────────────────────────────────────
 const C = {
@@ -511,6 +503,10 @@ function ScanScreen({ onBack, onClassificationResult }) {
       Alert.alert("No image", "Please take or choose a photo first.");
       return;
     }
+    if (HF_TOKEN === "hf_YOUR_TOKEN_HERE") {
+      Alert.alert("Token missing", "Add your HuggingFace token to the HF_TOKEN line in App.js.");
+      return;
+    }
     setLoading(true);
     try {
       const response = await fetch(HF_URL, {
@@ -521,23 +517,30 @@ function ScanScreen({ onBack, onClassificationResult }) {
         },
         body: JSON.stringify({
           inputs: imageBase64,
-          parameters: { candidate_labels: CLIP_PROMPTS },
+          parameters: { candidate_labels: CLIP_LABELS },
         }),
       });
 
+      const text = await response.text();
+
       if (response.status === 503) {
-        Alert.alert("Model warming up", "The AI is starting up. Please wait about 20 seconds and try again.");
+        Alert.alert("Model warming up", "The AI is starting up — please wait 20 seconds and try again.");
         return;
       }
-      if (!response.ok) throw new Error(`API error ${response.status}`);
+      if (response.status === 401) {
+        Alert.alert("Invalid token", "Your HuggingFace token was rejected. Check it is correct and has not expired.");
+        return;
+      }
+      if (!response.ok) {
+        Alert.alert("API error", `Status ${response.status}\n\n${text}`);
+        return;
+      }
 
-      const results = await response.json();
-      // HF returns results sorted by score descending
-      const top    = results[0];
-      const label  = PROMPT_TO_LABEL[top.label] ?? top.label;
-      onClassificationResult(label, top.score);
+      const results = JSON.parse(text);
+      const top = results[0];
+      onClassificationResult(top.label, top.score);
     } catch (err) {
-      Alert.alert("Error", "Could not classify the image. Check your internet connection and try again.");
+      Alert.alert("Network error", `Could not reach HuggingFace.\n\n${err.message}`);
     } finally {
       setLoading(false);
     }
