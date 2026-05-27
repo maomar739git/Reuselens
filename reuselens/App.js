@@ -8,13 +8,10 @@ import { StatusBar } from "expo-status-bar";
 import * as ImagePicker from "expo-image-picker";
 import * as ImageManipulator from "expo-image-manipulator";
 
-// ─── HUGGING FACE ─────────────────────────────────────────────────────────────
-// Get a free token at huggingface.co → Settings → Access Tokens → New token (read)
-const HF_TOKEN = "hf_YOUR_TOKEN_HERE";
-const HF_URL   = "https://api-inference.huggingface.co/models/openai/clip-vit-base-patch32";
-
-// Short labels — the HF pipeline applies its own "a photo of {label}" template
-const CLIP_LABELS = ["cardboard", "plastic", "paper"];
+// ─── CLAUDE API ───────────────────────────────────────────────────────────────
+// Get a key at console.anthropic.com → API Keys
+const CLAUDE_API_KEY = "sk-ant-YOUR_KEY_HERE";
+const CLAUDE_URL     = "https://api.anthropic.com/v1/messages";
 
 // ─── THEME ───────────────────────────────────────────────────────────────────
 const C = {
@@ -517,8 +514,8 @@ function ScanScreen({ onBack, onClassificationResult }) {
       Alert.alert("No image", "Please take or choose a photo first.");
       return;
     }
-    if (HF_TOKEN === "hf_YOUR_TOKEN_HERE") {
-      Alert.alert("Token missing", "Add your HuggingFace token to the HF_TOKEN line in App.js.");
+    if (CLAUDE_API_KEY === "sk-ant-YOUR_KEY_HERE") {
+      Alert.alert("API key missing", "Add your Anthropic API key to the CLAUDE_API_KEY line in App.js.\n\nGet one free at console.anthropic.com → API Keys.");
       return;
     }
     if (Platform.OS === "web") {
@@ -531,29 +528,41 @@ function ScanScreen({ onBack, onClassificationResult }) {
     }
     setLoading(true);
     try {
-      // Use XMLHttpRequest — avoids a React Native fetch/SSL quirk with
-      // api-inference.huggingface.co that causes "Network request failed"
       const result = await new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
-        xhr.open("POST", HF_URL);
-        xhr.setRequestHeader("Authorization", `Bearer ${HF_TOKEN}`);
-        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.open("POST", CLAUDE_URL);
+        xhr.setRequestHeader("x-api-key", CLAUDE_API_KEY);
+        xhr.setRequestHeader("anthropic-version", "2023-06-01");
+        xhr.setRequestHeader("content-type", "application/json");
         xhr.timeout = 30000;
-        xhr.onload  = () => resolve({ status: xhr.status, text: xhr.responseText });
-        xhr.onerror = () => reject(new Error(`XHR network error (status ${xhr.status})`));
+        xhr.onload    = () => resolve({ status: xhr.status, text: xhr.responseText });
+        xhr.onerror   = () => reject(new Error(`XHR network error (status ${xhr.status})`));
         xhr.ontimeout = () => reject(new Error("Request timed out after 30 s"));
         xhr.send(JSON.stringify({
-          inputs: imageBase64,
-          parameters: { candidate_labels: CLIP_LABELS },
+          model: "claude-haiku-4-5-20251001",
+          max_tokens: 64,
+          messages: [{
+            role: "user",
+            content: [
+              {
+                type: "image",
+                source: { type: "base64", media_type: "image/jpeg", data: imageBase64 },
+              },
+              {
+                type: "text",
+                text: 'Identify the primary recyclable material in this image. Reply with ONLY valid JSON in this exact format: {"label":"cardboard","confidence":0.9} — label must be one of: cardboard, plastic, paper.',
+              },
+            ],
+          }],
         }));
       });
 
-      if (result.status === 503) {
-        Alert.alert("Model warming up", "The AI is starting up — please wait 20 seconds and try again.");
+      if (result.status === 401) {
+        Alert.alert("Invalid API key", "Your Anthropic API key was rejected. Check it is correct at console.anthropic.com.");
         return;
       }
-      if (result.status === 401) {
-        Alert.alert("Invalid token", "Your HuggingFace token was rejected. Check it is correct and has not expired.");
+      if (result.status === 429) {
+        Alert.alert("Rate limited", "Too many requests — please wait a moment and try again.");
         return;
       }
       if (result.status >= 400) {
@@ -561,21 +570,24 @@ function ScanScreen({ onBack, onClassificationResult }) {
         return;
       }
 
-      const results = JSON.parse(result.text);
-      const top = results[0];
-      onClassificationResult(top.label, top.score);
+      const data = JSON.parse(result.text);
+      const raw  = data.content[0].text.trim();
+      const jsonMatch = raw.match(/\{[^}]+\}/);
+      if (!jsonMatch) throw new Error(`Unexpected response: ${raw}`);
+      const { label, confidence } = JSON.parse(jsonMatch[0]);
+      onClassificationResult(label, confidence);
     } catch (err) {
       let apiConnectivity = "checking…";
       try {
-        const probe = await fetch("https://api-inference.huggingface.co", { method: "HEAD" });
-        apiConnectivity = `API reachable ✓ (${probe.status})`;
+        const probe = await fetch("https://api.anthropic.com", { method: "HEAD" });
+        apiConnectivity = `Anthropic reachable ✓ (${probe.status})`;
       } catch (probeErr) {
-        apiConnectivity = `API NOT reachable ✗ (${probeErr.message})`;
+        apiConnectivity = `Anthropic NOT reachable ✗ (${probeErr.message})`;
       }
       const sizeKB = Math.round((imageBase64?.length ?? 0) / 1024);
       Alert.alert(
         "Network error",
-        `${err.message}\n\nAPI endpoint: ${apiConnectivity}\nImage size: ${sizeKB} KB`,
+        `${err.message}\n\nConnectivity: ${apiConnectivity}\nImage size: ${sizeKB} KB`,
       );
     } finally {
       setLoading(false);
