@@ -531,48 +531,51 @@ function ScanScreen({ onBack, onClassificationResult }) {
     }
     setLoading(true);
     try {
-      const response = await fetch(HF_URL, {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${HF_TOKEN}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          inputs: `data:image/jpeg;base64,${imageBase64}`,
+      // Use XMLHttpRequest — avoids a React Native fetch/SSL quirk with
+      // api-inference.huggingface.co that causes "Network request failed"
+      const result = await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", HF_URL);
+        xhr.setRequestHeader("Authorization", `Bearer ${HF_TOKEN}`);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.timeout = 30000;
+        xhr.onload  = () => resolve({ status: xhr.status, text: xhr.responseText });
+        xhr.onerror = () => reject(new Error(`XHR network error (status ${xhr.status})`));
+        xhr.ontimeout = () => reject(new Error("Request timed out after 30 s"));
+        xhr.send(JSON.stringify({
+          inputs: imageBase64,
           parameters: { candidate_labels: CLIP_LABELS },
-        }),
+        }));
       });
 
-      const text = await response.text();
-
-      if (response.status === 503) {
+      if (result.status === 503) {
         Alert.alert("Model warming up", "The AI is starting up — please wait 20 seconds and try again.");
         return;
       }
-      if (response.status === 401) {
+      if (result.status === 401) {
         Alert.alert("Invalid token", "Your HuggingFace token was rejected. Check it is correct and has not expired.");
         return;
       }
-      if (!response.ok) {
-        Alert.alert("API error", `Status ${response.status}\n\n${text}`);
+      if (result.status >= 400) {
+        Alert.alert("API error", `Status ${result.status}\n\n${result.text}`);
         return;
       }
 
-      const results = JSON.parse(text);
+      const results = JSON.parse(result.text);
       const top = results[0];
       onClassificationResult(top.label, top.score);
     } catch (err) {
-      let connectivity = "checking…";
+      let apiConnectivity = "checking…";
       try {
-        const probe = await fetch("https://huggingface.co", { method: "HEAD" });
-        connectivity = `HF reachable ✓ (${probe.status})`;
+        const probe = await fetch("https://api-inference.huggingface.co", { method: "HEAD" });
+        apiConnectivity = `API reachable ✓ (${probe.status})`;
       } catch (probeErr) {
-        connectivity = `HF NOT reachable ✗ (${probeErr.message})`;
+        apiConnectivity = `API NOT reachable ✗ (${probeErr.message})`;
       }
       const sizeKB = Math.round((imageBase64?.length ?? 0) / 1024);
       Alert.alert(
         "Network error",
-        `${err.message}\n\nConnectivity: ${connectivity}\nImage size: ${sizeKB} KB`,
+        `${err.message}\n\nAPI endpoint: ${apiConnectivity}\nImage size: ${sizeKB} KB`,
       );
     } finally {
       setLoading(false);
