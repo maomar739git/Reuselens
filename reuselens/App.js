@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, FlatList, Linking } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, FlatList, Linking, Image } from "react-native";
 
 const materials_data = [
   { id: 1, name: "Cardboard", wet_ok: false, dirty_ok: false, ripped_ok: true, washable: false, wash_instructions: null },
@@ -513,6 +513,30 @@ const recipe_references = {
   23: { source_name: "Jewelry Stand",                        source_url: "https://www.thriftyfun.com/Upcycled-Plastic-Bottle-Jewelry-Stand-1.html" },
 };
 
+const recipe_images = {
+  1:  require("./assets/corn-on-the-cob-pencil-holder.jpg"),
+  3:  require("./assets/parking-garage.jpg"),
+  4:  require("./assets/geometric-organiser.webp"),
+  5:  require("./assets/nok-hockey.webp"),
+  6:  require("./assets/storage-shelf.webp"),
+  7:  require("./assets/tensegrity-pen-holder.webp"),
+  8:  require("./assets/origami-corner-bookmark.png"),
+  9:  require("./assets/origami-box-with-lid.png"),
+  10: require("./assets/ninja-star.png"),
+  11: require("./assets/Newspaper-Envelopes.jpg"),
+  12: require("./assets/paper-gift-bag.png"),
+  14: require("./assets/newspaper-rings-basket.jpg"),
+  15: require("./assets/birdsnest-lampshade.png"),
+  16: require("./assets/newspaper-placemat.png"),
+  17: require("./assets/bowling.jpg"),
+  18: require("./assets/shaker-instrument.jpg"),
+  19: require("./assets/piggy-bank.png"),
+  20: require("./assets/woven-basket.jpg"),
+  21: require("./assets/yogurt-pot-snake.webp"),
+  22: require("./assets/watergun.png"),
+  23: require("./assets/jewellery-stand.jpg"),
+};
+
 // ─── SCREEN 1: Material Selection ───────────────────────────────────────────
 function MaterialScreen({ onSelect }) {
   const materialList = [
@@ -743,9 +767,13 @@ function RecipeScreen({ materialId, tools, onRestart, onSelectRecipe }) {
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <TouchableOpacity style={styles.recipeCard} onPress={() => onSelectRecipe(item)}>
-            <View style={styles.recipePlaceholderImage}>
-              <Text style={styles.placeholderText}>📷 Image coming soon</Text>
-            </View>
+            {recipe_images[item.id] ? (
+              <Image source={recipe_images[item.id]} style={styles.recipePlaceholderImage} resizeMode="cover" />
+            ) : (
+              <View style={styles.recipePlaceholderImage}>
+                <Text style={styles.placeholderText}>📷 Image coming soon</Text>
+              </View>
+            )}
             <View style={styles.recipeInfo}>
               <Text style={styles.recipeName}>{item.recipe_name}</Text>
               <Text style={styles.recipeDescription}>{item.end_product}</Text>
@@ -783,9 +811,13 @@ function RecipeDetailScreen({ recipe, onBack }) {
         </TouchableOpacity>
       )}
 
-      <View style={styles.detailPlaceholderImage}>
-        <Text style={styles.placeholderText}>📷 Image coming soon</Text>
-      </View>
+      {recipe_images[recipe.id] ? (
+        <Image source={recipe_images[recipe.id]} style={styles.detailPlaceholderImage} resizeMode="cover" />
+      ) : (
+        <View style={styles.detailPlaceholderImage}>
+          <Text style={styles.placeholderText}>📷 Image coming soon</Text>
+        </View>
+      )}
 
       <Text style={styles.detailDescription}>{recipe.end_product}</Text>
 
