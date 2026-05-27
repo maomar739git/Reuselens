@@ -7,11 +7,21 @@ import { Ionicons } from "@expo/vector-icons";
 import { StatusBar } from "expo-status-bar";
 import * as ImagePicker from "expo-image-picker";
 
-// ─── BACKEND ─────────────────────────────────────────────────────────────────
-// iOS simulator  → http://localhost:8000
-// Android emu    → http://10.0.2.2:8000
-// Physical device → http://<your-local-ip>:8000
-const API_URL = "http://localhost:8000";
+// ─── HUGGING FACE ─────────────────────────────────────────────────────────────
+// Get a free token at huggingface.co → Settings → Access Tokens → New token (read)
+const HF_TOKEN = "hf_YOUR_TOKEN_HERE";
+const HF_URL   = "https://api-inference.huggingface.co/models/openai/clip-vit-base-patch32";
+
+const CLIP_PROMPTS = [
+  "a photo of a cardboard item",
+  "a photo of a plastic item",
+  "a photo of a paper item",
+];
+const PROMPT_TO_LABEL = {
+  "a photo of a cardboard item": "cardboard",
+  "a photo of a plastic item":   "plastic",
+  "a photo of a paper item":     "paper",
+};
 
 // ─── THEME ───────────────────────────────────────────────────────────────────
 const C = {
@@ -464,8 +474,11 @@ function HomeScreen({ onStartScan }) {
 
 // ─── SCAN SCREEN ─────────────────────────────────────────────────────────────
 function ScanScreen({ onBack, onClassificationResult }) {
-  const [image, setImage] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [imageUri,    setImageUri]    = useState(null);
+  const [imageBase64, setImageBase64] = useState(null);
+  const [loading,     setLoading]     = useState(false);
+
+  const pickOptions = { mediaTypes: "images", allowsEditing: true, quality: 0.6, base64: true };
 
   const takePhoto = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
@@ -473,12 +486,11 @@ function ScanScreen({ onBack, onClassificationResult }) {
       Alert.alert("Permission needed", "Camera access is required to take a photo.");
       return;
     }
-    const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: "images",
-      allowsEditing: true,
-      quality: 0.8,
-    });
-    if (!result.canceled) setImage(result.assets[0].uri);
+    const result = await ImagePicker.launchCameraAsync(pickOptions);
+    if (!result.canceled) {
+      setImageUri(result.assets[0].uri);
+      setImageBase64(result.assets[0].base64);
+    }
   };
 
   const chooseFromLibrary = async () => {
@@ -487,36 +499,45 @@ function ScanScreen({ onBack, onClassificationResult }) {
       Alert.alert("Permission needed", "Photo library access is required.");
       return;
     }
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: "images",
-      allowsEditing: true,
-      quality: 0.8,
-    });
-    if (!result.canceled) setImage(result.assets[0].uri);
+    const result = await ImagePicker.launchImageLibraryAsync(pickOptions);
+    if (!result.canceled) {
+      setImageUri(result.assets[0].uri);
+      setImageBase64(result.assets[0].base64);
+    }
   };
 
   const analyseWithAI = async () => {
-    if (!image) {
+    if (!imageBase64) {
       Alert.alert("No image", "Please take or choose a photo first.");
       return;
     }
     setLoading(true);
     try {
-      const formData = new FormData();
-      formData.append("file", { uri: image, type: "image/jpeg", name: "image.jpg" });
-      const response = await fetch(`${API_URL}/classify`, {
+      const response = await fetch(HF_URL, {
         method: "POST",
-        body: formData,
-        headers: { "Content-Type": "multipart/form-data" },
+        headers: {
+          "Authorization": `Bearer ${HF_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          inputs: imageBase64,
+          parameters: { candidate_labels: CLIP_PROMPTS },
+        }),
       });
-      if (!response.ok) throw new Error(`Server error ${response.status}`);
-      const data = await response.json();
-      onClassificationResult(data.label, data.confidence);
+
+      if (response.status === 503) {
+        Alert.alert("Model warming up", "The AI is starting up. Please wait about 20 seconds and try again.");
+        return;
+      }
+      if (!response.ok) throw new Error(`API error ${response.status}`);
+
+      const results = await response.json();
+      // HF returns results sorted by score descending
+      const top    = results[0];
+      const label  = PROMPT_TO_LABEL[top.label] ?? top.label;
+      onClassificationResult(label, top.score);
     } catch (err) {
-      Alert.alert(
-        "Connection error",
-        "Could not reach the AI server.\n\nMake sure the backend is running:\n  cd backend && uvicorn main:app"
-      );
+      Alert.alert("Error", "Could not classify the image. Check your internet connection and try again.");
     } finally {
       setLoading(false);
     }
@@ -540,8 +561,8 @@ function ScanScreen({ onBack, onClassificationResult }) {
           <Text style={styles.tipText}>  Good lighting = Better detection</Text>
         </View>
 
-        {image ? (
-          <Image source={{ uri: image }} style={styles.scanPreview} resizeMode="cover" />
+        {imageUri ? (
+          <Image source={{ uri: imageUri }} style={styles.scanPreview} resizeMode="cover" />
         ) : (
           <View style={styles.scanPreviewPlaceholder}>
             <Ionicons name="image-outline" size={64} color={C.muted} />
@@ -559,9 +580,9 @@ function ScanScreen({ onBack, onClassificationResult }) {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.scanPrimaryButton, { marginTop: 8, opacity: loading || !image ? 0.5 : 1 }]}
+          style={[styles.scanPrimaryButton, { marginTop: 8, opacity: loading || !imageUri ? 0.5 : 1 }]}
           onPress={analyseWithAI}
-          disabled={loading || !image}
+          disabled={loading || !imageUri}
         >
           {loading ? (
             <ActivityIndicator color={C.bg} />
