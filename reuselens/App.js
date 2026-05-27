@@ -1,7 +1,7 @@
 import { useState } from "react";
 import {
   View, Text, TouchableOpacity, ScrollView, StyleSheet,
-  FlatList, Linking, Image, Alert, SafeAreaView, ActivityIndicator,
+  FlatList, Linking, Image, Alert, SafeAreaView, ActivityIndicator, Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { StatusBar } from "expo-status-bar";
@@ -521,6 +521,14 @@ function ScanScreen({ onBack, onClassificationResult }) {
       Alert.alert("Token missing", "Add your HuggingFace token to the HF_TOKEN line in App.js.");
       return;
     }
+    if (Platform.OS === "web") {
+      Alert.alert(
+        "Use Expo Go on your phone",
+        "The web browser version can't reach external APIs.\n\n" +
+        "Open the Expo Go app on your phone, scan the Snack QR code, and try again."
+      );
+      return;
+    }
     setLoading(true);
     try {
       const response = await fetch(HF_URL, {
@@ -530,7 +538,7 @@ function ScanScreen({ onBack, onClassificationResult }) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          inputs: imageBase64,
+          inputs: `data:image/jpeg;base64,${imageBase64}`,
           parameters: { candidate_labels: CLIP_LABELS },
         }),
       });
@@ -554,7 +562,18 @@ function ScanScreen({ onBack, onClassificationResult }) {
       const top = results[0];
       onClassificationResult(top.label, top.score);
     } catch (err) {
-      Alert.alert("Network error", `Could not reach HuggingFace.\n\n${err.message}`);
+      let connectivity = "checking…";
+      try {
+        const probe = await fetch("https://huggingface.co", { method: "HEAD" });
+        connectivity = `HF reachable ✓ (${probe.status})`;
+      } catch (probeErr) {
+        connectivity = `HF NOT reachable ✗ (${probeErr.message})`;
+      }
+      const sizeKB = Math.round((imageBase64?.length ?? 0) / 1024);
+      Alert.alert(
+        "Network error",
+        `${err.message}\n\nConnectivity: ${connectivity}\nImage size: ${sizeKB} KB`,
+      );
     } finally {
       setLoading(false);
     }
