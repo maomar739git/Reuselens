@@ -562,7 +562,18 @@ function ScanScreen({ onBack, onClassificationResult }) {
       const top = results[0];
       onClassificationResult(top.label, top.score);
     } catch (err) {
-      Alert.alert("Network error", `Could not reach HuggingFace.\n\n${err.message}`);
+      let connectivity = "checking…";
+      try {
+        const probe = await fetch("https://huggingface.co", { method: "HEAD" });
+        connectivity = `HF reachable ✓ (${probe.status})`;
+      } catch (probeErr) {
+        connectivity = `HF NOT reachable ✗ (${probeErr.message})`;
+      }
+      const sizeKB = Math.round((imageBase64?.length ?? 0) / 1024);
+      Alert.alert(
+        "Network error",
+        `${err.message}\n\nConnectivity: ${connectivity}\nImage size: ${sizeKB} KB`,
+      );
     } finally {
       setLoading(false);
     }
