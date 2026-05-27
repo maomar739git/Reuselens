@@ -11,7 +11,7 @@ import * as ImagePicker from "expo-image-picker";
 // iOS simulator  → http://localhost:8000
 // Android emu    → http://10.0.2.2:8000
 // Physical device → http://<your-local-ip>:8000
-const API_URL = "http://192.168.1.116:8000";
+const API_URL = "http://<your-local-ip>:8000";
 
 // ─── THEME ───────────────────────────────────────────────────────────────────
 const C = {
